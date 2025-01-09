@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta de Clima</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Consulta de Clima</h1>
+        <div class="input-group">
+            <label for="cidade">Cidade:</label>
+            <input type="text" id="cidade" placeholder="Digite o nome da cidade">
+        </div>
+        <button onclick="consultarClima()">Consultar Clima</button>
+        <div id="resultado" class="result"></div>
+    </div>
+
+    <script>
+        async function consultarClima() {
+            const cidade = document.getElementById('cidade').value.trim();
+            const resultado = document.getElementById('resultado');
+
+            // Validação da entrada no frontend
+            const regex = /^[a-zA-Z\s-]+$/;
+            if (!cidade || !regex.test(cidade)) {
+                resultado.innerHTML = '<p class="error">Por favor, insira um nome de cidade válido (somente letras, espaços e hifens).</p>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/clima/${cidade}`);
+                if (response.ok) {
+                    const dados = await response.json();
+                    resultado.innerHTML = `
+                    <h2>Clima em ${dados.cidade}</h2>
+                    <p><strong>Descrição:</strong> ${dados.descricao}</p>
+                    <p><strong>Temperatura:</strong> ${dados.temperatura} °C</p>
+                    <p><strong>Umidade:</strong> ${dados.umidade}%</p>
+                    <p><strong>Velocidade do Vento:</strong> ${dados['velocidade do vento']} m/s</p>
+                `;
+                } else {
+                    const erro = await response.json();
+                    resultado.innerHTML = `<p class="error">${erro.erro}</p>`;
+                }
+            } catch (error) {
+                resultado.innerHTML = '<p class="error">Ocorreu um erro ao consultar o clima.</p>';
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Tarefas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Lista de Tarefas</h1>
+    </header>
+    <main>
+        <section id="task-form">
+            <h2>Adicionar Tarefa</h2>
+            <form id="nova-tarefa">
+                <input type="text" id="titulo" placeholder="Título da tarefa" required>
+                <textarea id="descricao" placeholder="Descrição da tarefa"></textarea>
+                <button type="submit">Adicionar</button>
+            </form>
+        </section>
+        <section id="task-list">
+            <h2>Tarefas</h2>
+            <ul id="tarefas"></ul>
+        </section>
+    </main>
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

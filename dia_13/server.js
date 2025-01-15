@@ -69,40 +69,11 @@ app.post("/login", async (req, res) => {
 
     await usuarios.updateOne(
         { _id: usuario._id },
-        { $set: { refreshToken } }
+        { $set: { refreshToken: refreshToken } }
     );
 
-    res.json({ mensagem: "Login bem-sucedido", token });
+    res.json({ mensagem: "Login bem-sucedido", token, refreshToken });
 });
-
-app.post("/token/renovar", (req, res) => {
-    const { refreshToken } = req.body;
-
-    if (!refreshToken) {
-        return res.status(401).json({ mensagem: "Refresh token é obrigatório" });
-    }
-
-    if (!refreshTokens.includes(refreshToken)) {
-        return res.status(403).json({ mensagem: "Refresh token inválido" });
-    }
-
-    try {
-        const usuario = jwt.verify(refreshToken, "chave-secreta-refresh");
-
-        // Gerar novo access token
-        const newAccessToken = jwt.sign(
-            { id: usuario.id, role: usuario.role },
-            "chave-secreta",
-            { expiresIn: "15m" }
-        );
-
-        res.json({ accessToken: newAccessToken });
-    } catch (err) {
-        return res.status(403).json({ mensagem: "Refresh token inválido ou expirado" });
-    }
-});
-
-
 
 // Rota protegida
 app.get("/protegido", (req, res) => {
@@ -118,6 +89,39 @@ app.get("/protegido", (req, res) => {
         res.json({ mensagem: "Acesso permitido", usuario });
     } catch (err) {
         res.status(403).json({ mensagem: "Token inválido ou expirado" });
+    }
+});
+
+app.post("/token/renovar", async (req, res) => {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+        return res.status(401).json({ mensagem: "Refresh token é obrigatório" });
+    }
+
+    const db = await connectToDatabase();
+    const usuarios = db.collection("usuarios");
+
+    // Buscar o usuário com o refreshToken
+    const usuario = await usuarios.findOne({ refreshToken: refreshToken });
+    if (!usuario) {
+        return res.status(403).json({ mensagem: "Refresh token inválido" });
+    }
+
+    try {
+        // Verificar se o refreshToken é válido
+        jwt.verify(refreshToken, "chave-secreta-refresh");
+
+        // Gerar um novo accessToken
+        const newToken = jwt.sign(
+            { id: usuario._id, role: usuario.role },
+            "chave-secreta",
+            { expiresIn: "15m" }
+        );
+
+        res.json({ token: newToken });
+    } catch (err) {
+        return res.status(403).json({ mensagem: "Refresh token inválido ou expirado" });
     }
 });
 
